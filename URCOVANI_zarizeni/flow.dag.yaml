@@ -1,0 +1,54 @@
+id: template_chat_flow
+name: Template Chat Flow
+inputs:
+  chat_history:
+    type: list
+    is_chat_input: false
+    is_chat_history: true
+  zadani:
+    type: string
+    is_chat_input: true
+outputs:
+  vystup:
+    type: string
+    reference: ${PARSER.output}
+    is_chat_output: true
+nodes:
+- name: chat
+  type: llm
+  source:
+    type: code
+    path: chat.jinja2
+  inputs:
+    deployment_name: gpt-4o_ridici_dokumentace_model
+    temperature: 0
+    top_p: 1
+    max_tokens: 256
+    response_format:
+      type: text
+    question: ${PROMPT_pro_VYHLEDANI.output}
+    chat_history: ${inputs.chat_history}
+  provider: AzureOpenAI
+  connection: ANECTVISDemoAISweden
+  api: chat
+  module: promptflow.tools.aoai
+  use_variants: false
+- name: PROMPT_pro_VYHLEDANI
+  type: prompt
+  source:
+    type: code
+    path: PROMPT_pro_VYHLEDANI.jinja2
+  inputs:
+    zadani: ${inputs.zadani}
+  use_variants: false
+- name: PARSER
+  type: python
+  source:
+    type: code
+    path: PARSER.py
+  inputs:
+    data: ${chat.output}
+  use_variants: false
+node_variants: {}
+environment:
+  python_requirements_txt: requirements.txt

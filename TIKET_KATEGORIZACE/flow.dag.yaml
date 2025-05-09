@@ -1,0 +1,50 @@
+id: template_chat_flow
+name: Template Chat Flow
+inputs:
+  chat_history:
+    type: list
+    is_chat_input: false
+    is_chat_history: true
+  text_tiketu:
+    type: string
+    description: Popis tiketu, který má být kategorizován
+    is_chat_input: true
+outputs:
+  kategorie_tiketu:
+    type: string
+    reference: ${chat.output}
+    is_chat_output: true
+nodes:
+- name: chat
+  type: llm
+  source:
+    type: code
+    path: chat.jinja2
+  inputs:
+    deployment_name: gpt-4o_ridici_dokumentace_model
+    temperature: 0
+    top_p: 0.95
+    max_tokens: 800
+    response_format:
+      type: text
+    presence_penalty: 0
+    frequency_penalty: 0
+    function_call: ${PROMPT_PRO_AI.output}
+    chat_history: ${inputs.chat_history}
+    question: ${PROMPT_PRO_AI.output}
+  provider: AzureOpenAI
+  connection: ANECTVISDemoAISweden
+  api: chat
+  module: promptflow.tools.aoai
+  use_variants: false
+- name: PROMPT_PRO_AI
+  type: prompt
+  source:
+    type: code
+    path: PROMPT_PRO_AI.jinja2
+  inputs:
+    text_tiketu: ${inputs.text_tiketu}
+  use_variants: false
+node_variants: {}
+environment:
+  python_requirements_txt: requirements.txt
